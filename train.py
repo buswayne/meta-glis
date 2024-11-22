@@ -146,18 +146,18 @@ def main():
     Main function to execute the training of the Autoencoder.
     """
     # Configuration (example)
-    input_dim = 20  # Dimensionality of the input data (e.g., for the Rosenbrock function)
-    latent_dim = 5  # Latent space dimension (reduced dimensionality)
+    input_dim = 2  # Dimensionality of the input data (e.g., for the Rosenbrock function)
+    latent_dim = 1  # Latent space dimension (reduced dimensionality)
     learning_rate = 1e-4
     batch_size = 64
     epochs = 100000
-    checkpoint_path = "out/model_checkpoint.pt"
+    checkpoint_path = "out/model_2d_checkpoint.pt"
     model_dir = 'out'
     os.makedirs(model_dir, exist_ok=True)
 
     # Load the dataset (training and validation)
-    train_data_path = "data/rosenbrock/train/rosenbrock_optima_data.pt"
-    valid_data_path = "data/rosenbrock/valid/rosenbrock_optima_data.pt"
+    train_data_path = "data/rosenbrock/train/rosenbrock_2d_optima_data.pt"
+    valid_data_path = "data/rosenbrock/valid/rosenbrock_2d_optima_data.pt"
 
     train_dataset = FunctionDataset(train_data_path)
     val_dataset = FunctionDataset(valid_data_path)

@@ -38,7 +38,7 @@ if __name__ == "__main__":
     batch_size = 128
 
     # Step 2: Load data in the dataset
-    dataset = FunctionDataset("data/rosenbrock/train/rosenbrock_optima_data.pt")
+    dataset = FunctionDataset("data/rosenbrock/train/rosenbrock_2d_optima_data.pt")
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     for batch in dataloader:
