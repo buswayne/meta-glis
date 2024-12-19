@@ -46,33 +46,47 @@ def generate_optima(file_path, data_size=10000, dim=2, bounds=(-30, 30), perturb
 
 if __name__ == "__main__":
     # Configuration
-    input_dim = 2
-    data_size = 10000
+    input_dim = 10
+    data_size = 5000
     bounds = (-5. * np.ones(input_dim), 5. * np.ones(input_dim))
-    pertub_pct = 1
+    pertub_pct = 0.5
 
-    X_opt_train = generate_optima("data/rosenbrock/train/rosenbrock_2d_optima_data.pt",
+    file_name = f"rosenbrock_{input_dim}d_{pertub_pct}pct_optima_data.pt"
+
+    X_opt_train = generate_optima("data/rosenbrock/train/" + file_name,
                     data_size=data_size,
                     dim=input_dim,
                     bounds=bounds,
                     perturb_pct=pertub_pct)
 
-    X_opt_valid = generate_optima("data/rosenbrock/valid/rosenbrock_2d_optima_data.pt",
-                    data_size=data_size,
+    X_opt_valid = generate_optima("data/rosenbrock/valid/" + file_name,
+                    data_size=data_size//5,
                     dim=input_dim,
                     bounds=bounds,
                     perturb_pct=pertub_pct)
 
-    X_opt_test = generate_optima("data/rosenbrock/test/rosenbrock_2d_optima_data.pt",
-                    data_size=data_size,
+    X_opt_test = generate_optima("data/rosenbrock/test/" + file_name,
+                    data_size=data_size//5,
                     dim=input_dim,
                     bounds=bounds,
                     perturb_pct=pertub_pct)
 
     # plot
-    plt.figure()
+    plt.figure(figsize=(16,5))
+    # plt.subplot(1, 3, 1)
     plt.scatter(X_opt_train[:, 0], X_opt_train[:, 1], label='train')
     plt.scatter(X_opt_valid[:, 0], X_opt_valid[:, 1], label='valid')
     plt.scatter(X_opt_test[:, 0], X_opt_test[:, 1], label='test')
+
+    # plt.subplot(1, 3, 2)
+    # plt.scatter(X_opt_train[:, 0], X_opt_train[:, 2], label='train')
+    # plt.scatter(X_opt_valid[:, 0], X_opt_valid[:, 2], label='valid')
+    # plt.scatter(X_opt_test[:, 0], X_opt_test[:, 2], label='test')
+    #
+    # plt.subplot(1, 3, 3)
+    # plt.scatter(X_opt_train[:, 1], X_opt_train[:, 2], label='train')
+    # plt.scatter(X_opt_valid[:, 1], X_opt_valid[:, 2], label='valid')
+    # plt.scatter(X_opt_test[:, 1], X_opt_test[:, 2], label='test')
+
     plt.legend()
     plt.show()

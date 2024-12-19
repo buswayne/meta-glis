@@ -1,5 +1,3 @@
-from turtledemo.sorting_animate import start_qsort
-
 import torch
 import torch.optim as optim
 import time
@@ -88,7 +86,7 @@ def eval_one_epoch(model, dataloader, criterion, device):
     return avg_loss
 
 
-def train(model, train_loader, val_loader, optimizer, criterion, device, epochs, checkpoint_path):
+def train(model, train_loader, optimizer, criterion, device, epochs, checkpoint_path):
     """
     Train the autoencoder model with both training and validation loops, saving a single checkpoint.
 
@@ -115,14 +113,14 @@ def train(model, train_loader, val_loader, optimizer, criterion, device, epochs,
         train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device)
 
         # Evaluation
-        val_loss = eval_one_epoch(model, val_loader, criterion, device)
+        # val_loss = eval_one_epoch(model, val_loader, criterion, device)
 
         LOSS_TRAIN.append(train_loss)
-        LOSS_VALID.append(val_loss)
+        # LOSS_VALID.append(val_loss)
 
         # Save checkpoint if the validation loss improves
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
+        if train_loss < best_val_loss:
+            best_val_loss = train_loss
             checkpoint = {
                 'model': model.state_dict(),
                 'optimizer': optimizer.state_dict(),
@@ -137,7 +135,7 @@ def train(model, train_loader, val_loader, optimizer, criterion, device, epochs,
 
         if epoch % 10 == 0:
             # Print loss for current epoch
-            print(f"Epoch [{epoch + 1}/{epochs}] | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f}")
+            print(f"Epoch [{epoch + 1}/{epochs}] | Train Loss: {train_loss:.4f}")# | Val Loss: {val_loss:.4f}")
             print('-'*100)
 
 
@@ -146,27 +144,29 @@ def main():
     Main function to execute the training of the Autoencoder.
     """
     # Configuration (example)
-    input_dim = 2  # Dimensionality of the input data (e.g., for the Rosenbrock function)
-    latent_dim = 1  # Latent space dimension (reduced dimensionality)
+    input_dim = 20  # Dimensionality of the input data (e.g., for the Rosenbrock function)
+    latent_dim = 5  # Latent space dimension (reduced dimensionality)
     learning_rate = 1e-4
     batch_size = 64
     epochs = 100000
-    checkpoint_path = "out/model_2d_checkpoint.pt"
+    checkpoint_path = "out/model_20d_checkpoint.pt"
     model_dir = 'out'
     os.makedirs(model_dir, exist_ok=True)
 
     # Load the dataset (training and validation)
-    train_data_path = "data/rosenbrock/train/rosenbrock_2d_optima_data.pt"
-    valid_data_path = "data/rosenbrock/valid/rosenbrock_2d_optima_data.pt"
+    train_data_path = "data/rosenbrock/train/rosenbrock_20d_optima_data.pt"
+    # valid_data_path = "data/rosenbrock/valid/rosenbrock_20d_optima_data.pt"
 
     train_dataset = FunctionDataset(train_data_path)
-    val_dataset = FunctionDataset(valid_data_path)
+    # val_dataset = FunctionDataset(valid_data_path)
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    # val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     # Initialize the model
     model = Autoencoder(input_dim=input_dim, latent_dim=latent_dim)
+    checkpoint = torch.load("out/model_20d_checkpoint.pt", weights_only=True)
+    model.load_state_dict(checkpoint['model'])
 
     # Choose device (GPU if available, else CPU)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -177,7 +177,7 @@ def main():
     criterion = nn.MSELoss()  # Mean Squared Error loss for reconstruction
 
     # Start training
-    train(model, train_loader, val_loader, optimizer, criterion, device, epochs, checkpoint_path)
+    train(model, train_loader, optimizer, criterion, device, epochs, checkpoint_path)
 
 
 if __name__ == "__main__":

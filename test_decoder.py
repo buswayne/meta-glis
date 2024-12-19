@@ -7,6 +7,16 @@ from models import Autoencoder, Decoder
 from benchmarks import rosenbrock_function_torch, rosenbrock_function_np
 from glis.solvers import GLIS  # Assuming GLIS is a library or custom module you're using
 
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams['axes.labelsize']=14
+plt.rcParams['xtick.labelsize']=11
+plt.rcParams['ytick.labelsize']=11
+plt.rcParams['axes.grid']=True
+plt.rcParams['axes.xmargin']=0
+
 def test_model(test_loader, model_path, input_dim, latent_dim, device):
     """
     Load the trained model, evaluate on the test set, and compare global optima
@@ -19,15 +29,20 @@ def test_model(test_loader, model_path, input_dim, latent_dim, device):
     :param device: Device (CPU or GPU)
     """
     # Load the trained Autoencoder model
-    autoencoder_naive = Autoencoder(input_dim=input_dim, latent_dim=3)
+    autoencoder_naive = Autoencoder(input_dim=input_dim, latent_dim=latent_dim)
     autoencoder_naive.to(device)
     autoencoder_naive.eval()
     # Extract the decoder from the Autoencoder
     decoder_naive = autoencoder_naive.decoder
 
     autoencoder = Autoencoder(input_dim=input_dim, latent_dim=latent_dim)
-    checkpoint = torch.load(model_path, map_location=device, weights_only=True)
-    autoencoder.load_state_dict(checkpoint['model'])
+    try:
+        checkpoint = torch.load(model_path, weights_only=True)
+        state_dict = {k.replace('module.', ''): v for k, v in checkpoint['model'].items()}
+        autoencoder.load_state_dict(state_dict)
+    except:
+        raise Exception("Could not load pretrained model")
+
     autoencoder.to(device)
     autoencoder.eval()
 
@@ -48,7 +63,7 @@ def test_model(test_loader, model_path, input_dim, latent_dim, device):
             shifts = batch['params']['shifts'].to(device)
 
             # Create the Rosenbrock function
-            max_evals = 100
+            max_evals = 2000
 
             # Compare three approaches
             for i in range(xopt.size(0)):  # Iterate over batch
@@ -75,7 +90,7 @@ def test_model(test_loader, model_path, input_dim, latent_dim, device):
 
                 # NAIVE GLIS optimization in latent space (z)
                 fun_z_naive = lambda z: fun(decoder_naive(torch.tensor(z, dtype=torch.float32, device=device)).cpu().numpy())
-                glis_z_naive = GLIS(bounds=(-10*np.ones(3), 10*np.ones(3)), delta=0.1)
+                glis_z_naive = GLIS(bounds=(-10*np.ones(latent_dim), 10*np.ones(latent_dim)), delta=0.1)
                 z_glis_opt_naive, _ = glis_z_naive.solve(fun_z_naive, max_evals)
                 glis_z_optima_naive.append(glis_z_naive.fbest_seq)
 
@@ -85,22 +100,26 @@ def test_model(test_loader, model_path, input_dim, latent_dim, device):
     plt.figure(figsize=(8, 6))
 
     # True optima (constant across iterations)
-    plt.plot(np.arange(max_evals), np.repeat(np.reshape(true_optima, (-1,1)), max_evals, axis=1).T, color='blue', label="True Optimum (Mean)", alpha=0.3)
+    true_optima_arr =  np.repeat(np.reshape(true_optima, (-1,1)), max_evals, axis=1).T
+    plt.plot(np.arange(max_evals), true_optima_arr[:,0], color='blue', label="True Optimum (Mean)", alpha=0.3)
+    plt.plot(np.arange(max_evals), true_optima_arr[:,1:], color='blue', label='', alpha=0.3)
 
-    # GLIS over x
-    plt.plot(np.arange(max_evals), np.array(glis_x_optima).T, label="GLIS over x", color='green', alpha=0.3)
-
-    # GLIS over z
-    plt.plot(np.arange(max_evals), np.array(glis_z_optima).T, label="GLIS over z", color='orange', alpha=0.3)
-
-    # GLIS over z naive
-    plt.plot(np.arange(max_evals), np.array(glis_z_optima_naive).T, label="GLIS over z naive", color='purple', alpha=0.3)
+    # # GLIS over x
+    plt.plot(np.arange(max_evals), np.array(glis_x_optima)[0,:], label="GLIS over x", color='green', alpha=0.3)
+    plt.plot(np.arange(max_evals), np.array(glis_x_optima)[1:,:].T, label='', color='green', alpha=0.3)
+    #
+    # # GLIS over z
+    plt.plot(np.arange(max_evals), np.array(glis_z_optima)[0,:], label="GLIS over z", color='orange', alpha=0.3)
+    plt.plot(np.arange(max_evals), np.array(glis_z_optima)[1:,:].T, label='', color='orange', alpha=0.3)
+    #
+    # # GLIS over z naive
+    plt.plot(np.arange(max_evals), np.array(glis_z_optima_naive)[0,:], label="GLIS over z naive", color='purple', alpha=0.3)
+    plt.plot(np.arange(max_evals), np.array(glis_z_optima_naive)[1:,:].T, label='', color='purple', alpha=0.3)
 
     plt.yscale('log')  # Log scale for y-axis
     plt.xlabel("Iterations")
     plt.ylabel("Function Value (log scale)")
     plt.legend()
-    plt.grid()
     plt.show()
 
     # Mean - Std plot
@@ -112,6 +131,9 @@ def test_model(test_loader, model_path, input_dim, latent_dim, device):
 
     glis_z_means = np.mean(glis_z_optima, axis=0)
     glis_z_stds = np.std(glis_z_optima, axis=0)
+
+    glis_z_naive_means = np.mean(glis_z_optima_naive, axis=0)
+    glis_z_naive_stds = np.std(glis_z_optima_naive, axis=0)
 
     plt.figure(figsize=(8, 6))
 
@@ -148,12 +170,22 @@ def test_model(test_loader, model_path, input_dim, latent_dim, device):
         label="GLIS over z (Std)"
     )
 
+    # GLIS over z
+    plt.plot(np.arange(max_evals), glis_z_naive_means, label="GLIS over z naive (Mean)", color='purple')
+    plt.fill_between(
+        np.arange(max_evals),
+        glis_z_naive_means - glis_z_naive_stds,
+        glis_z_naive_means + glis_z_naive_stds,
+        color='purple',
+        alpha=0.2,
+        label="GLIS over z naive (Std)"
+    )
+
     plt.yscale('log')  # Log scale for y-axis
     plt.title("Mean and Standard Deviation of Optimization Results")
     plt.xlabel("Iterations")
     plt.ylabel("Function Value (log scale)")
     plt.legend()
-    plt.grid()
     plt.show()
 
 def main():
@@ -161,11 +193,11 @@ def main():
     Main function for testing the model and evaluating optimization performance.
     """
     # Configuration
-    input_dim = 2
-    latent_dim = 1
-    batch_size = 50
-    test_data_path = "data/rosenbrock/test/rosenbrock_2d_optima_data.pt"
-    model_path = "out/model_2d_checkpoint.pt"
+    input_dim = 20
+    latent_dim = 5
+    batch_size = 3
+    test_data_path = "data/rosenbrock/test/rosenbrock_20d_optima_data.pt"
+    model_path = "out/model_20d_5l_checkpoint.pt"
 
     # Choose device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
