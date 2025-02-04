@@ -1,9 +1,20 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from matplotlib.pyplot import viridis
 from pyswarm import pso
 from scipy.optimize import differential_evolution
 from benchmarks import rosenbrock_function_np
+
+plt.rcParams['pdf.fonttype'] = 42
+plt.rcParams['ps.fonttype'] = 42
+plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["mathtext.fontset"] = "cm"
+plt.rcParams['axes.labelsize']=12
+plt.rcParams['xtick.labelsize']=10
+plt.rcParams['ytick.labelsize']=10
+plt.rcParams['axes.grid']=True
+plt.rcParams['axes.xmargin']=0
 
 # List to store points and their function values
 sampled_points_and_values = []
@@ -75,86 +86,80 @@ def generate_optima(file_path, data_size=10000, dim=2, bounds=(-30, 30), perturb
                  "params": params}
 
     # torch.save(save_data, file_path)
-    # print(f"Data and parameters saved to {file_path}")
+    print(f"Data and parameters saved to {file_path}")
 
     return Xopt, fopt, X, f
 
 if __name__ == "__main__":
     # Configuration
-    input_dim = 2
-    data_size = 5
+    input_dim = 15
+    data_size = 500
     bounds = (-5. * np.ones(input_dim), 5. * np.ones(input_dim))
-    perturb_pct = 0.5
+    perturb_pct = 0.2
 
     file_name = f"rosenbrock_{input_dim}d_{perturb_pct}pct_optima_data.pt"
 
     (Xopt_train, fopt_train, X_train, f_train) = generate_optima(
-                                                "data/rosenbrock/train/" + file_name,
+                                                "data/rosenbrock/with_exploration/train/" + file_name,
                                                  data_size=data_size,
                                                  dim=input_dim,
                                                  bounds=bounds,
                                                  perturb_pct=perturb_pct)
 
 
-    # X_opt_valid = generate_optima("data/rosenbrock/valid/" + file_name,
-    #                 data_size=data_size//5,
-    #                 dim=input_dim,
-    #                 bounds=bounds,
-    #                 perturb_pct=pertub_pct)
+    # (Xopt_valid, fopt_valid, X_valid, f_valid) = generate_optima(
+    #                                              "data/rosenbrock/with_exploration/valid/" + file_name,
+    #                                              data_size=data_size//5,
+    #                                              dim=input_dim,
+    #                                              bounds=bounds,
+    #                                              perturb_pct=perturb_pct)
     #
-    # X_opt_test = generate_optima("data/rosenbrock/test/" + file_name,
-    #                 data_size=data_size//5,
-    #                 dim=input_dim,
-    #                 bounds=bounds,
-    #                 perturb_pct=pertub_pct)
+    # (Xopt_test, fopt_test, X_test, f_test) = generate_optima(
+    #                                              "data/rosenbrock/with_exploration/test/" + file_name,
+    #                                              data_size=data_size//5,
+    #                                              dim=input_dim,
+    #                                              bounds=bounds,
+    #                                              perturb_pct=perturb_pct)
 
     # plot
 
-    x_vals = np.linspace(-5, 5, 500)
-    y_vals = np.linspace(-5, 5, 500)
-    X_grid, Y_grid = np.meshgrid(x_vals, y_vals)
-
-    A = 100 * (1 + perturb_pct * np.random.uniform(-1, 1, size=1))
-    B = 1 * (1 + perturb_pct * np.random.uniform(-1, 1, size=1))
-    shifts = 1 * (1 + perturb_pct * np.random.uniform(-1, 1, size=input_dim))
-
-    # Generate the Rosenbrock function based on your parameters
-    rosenbrock_obj = rosenbrock_function_np(A, B, shifts, input_dim)
-
-    # Evaluate the function over the grid
-    Z_grid = np.zeros(X_grid.shape)
-    for i in range(X_grid.shape[0]):
-        for j in range(X_grid.shape[1]):
-            Z_grid[i, j] = rosenbrock_obj([X_grid[i, j], Y_grid[i, j]])
-
-    plt.figure()
-
-    all_points = np.concatenate(X_train, axis=0)  # Shape: (total_points, dim)
-    all_values = np.concatenate(f_train, axis=0)  # Shape: (total_points,)
-
-    # Create a hexbin plot
-    plt.hexbin(all_points[:, 0], all_points[:, 1], C=all_values, gridsize=50, cmap='gray', mincnt=1)
-
-    plt.colorbar(label="Function Value (f)")
-
-    contour = plt.contour(X_grid, Y_grid, Z_grid, levels=50, cmap='coolwarm', linestyles='--')
-    plt.clabel(contour, fmt='%2.1f', colors='black')  # Add contour labels
-
-    plt.scatter(Xopt_train[:, 0], Xopt_train[:, 1], c='red', s=25, label='Optimal Points', edgecolors='black')
-
-    plt.axis("equal")
-    # plt.scatter(Xopt_valid[:, 0], Xopt_valid[:, 1], label='valid')
-    # plt.scatter(Xopt_test[:, 0], Xopt_test[:, 1], label='test')
+    # all_points = np.concatenate(X_train, axis=0)  # Shape: (total_points, dim)
+    # all_values = np.concatenate(f_train, axis=0)  # Shape: (total_points,)
     #
-    # plt.subplot(1, 3, 2)
-    # plt.scatter(X_opt_train[:, 0], X_opt_train[:, 2], label='train')
-    # plt.scatter(X_opt_valid[:, 0], X_opt_valid[:, 2], label='valid')
-    # plt.scatter(X_opt_test[:, 0], X_opt_test[:, 2], label='test')
+    # for i in range(input_dim):
+    #     for j in range(input_dim):
+    #         plt.figure(figsize=(5, 5))
     #
-    # plt.subplot(1, 3, 3)
-    # plt.scatter(X_opt_train[:, 1], X_opt_train[:, 2], label='train')
-    # plt.scatter(X_opt_valid[:, 1], X_opt_valid[:, 2], label='valid')
-    # plt.scatter(X_opt_test[:, 1], X_opt_test[:, 2], label='test')
+    #         # Create a hexbin plot
+    #         plt.hexbin(all_points[:, i], all_points[:, j], C=all_values, gridsize=50, cmap='gray', mincnt=1)
+    #
+    #         plt.scatter(Xopt_train[:, i], Xopt_train[:, j], c='red', s=25, label='Optimal Points', edgecolors='black')
+    #
+    #         plt.axis("equal")
+    #
+    #         plt.title(f'dim {i} vs dim {j}')
+    #         plt.legend()
+    #
+    #         plt.show()
 
-    plt.legend()
-    plt.show()
+    idx_fixed = [(7, 11),(13,5),(7,5),(12,1),(12,3),(1,5)]
+
+    for i in range(6):
+        # first_idx, second_idx = np.random.choice(true_optima.shape[-1], size=2, replace=False)
+        first_idx, second_idx = idx_fixed[i]
+
+        plt.figure(figsize=(5, 5))
+        plt.scatter(X_train[:, :, first_idx], X_train[:, :, second_idx], label='_nolegend_', s=5, alpha=0.05, color='tab:blue')
+        plt.scatter(Xopt_train[:, first_idx], Xopt_train[:, second_idx], label='_nolegend_', marker='*', s=20, alpha=0.5, color='tab:red')
+
+        # Add high-alpha points just for the legend
+        plt.scatter([], [], label='$X^{*}$', s=5, alpha=1, color='tab:blue')
+        plt.scatter([], [], label='$X^{\star}$', s=20, marker='*', alpha=1, color='tab:red')
+
+        plt.xlabel(f'$x_{{{first_idx}}}$')
+        plt.ylabel(f'$x_{{{second_idx}}}$')
+        plt.legend()
+        plt.axis('equal')
+        plt.xlim([-2, 2])
+        plt.ylim([-2, 2])
+        plt.show()

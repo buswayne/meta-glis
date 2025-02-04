@@ -1,1 +1,7 @@
 /.venv/
+data/quadratic/test/quadratic_20d_0.5pct_optima_data.pt
+data/quadratic/test/quadratic_2d_0.5pct_optima_data.pt
+data/quadratic/train/quadratic_20d_0.5pct_optima_data.pt
+data/quadratic/train/quadratic_2d_0.5pct_optima_data.pt
+data/quadratic/valid/quadratic_20d_0.5pct_optima_data.pt
+data/quadratic/valid/quadratic_2d_0.5pct_optima_data.pt
