@@ -51,3 +51,14 @@ class SoftmaxLoss(nn.Module):
         loss = weights * squared_diff
 
         return loss.sum()  # Sum to match the normalization
+
+
+class SoftplusLoss(nn.Module):
+    def __init__(self):
+        super(SoftplusLoss, self).__init__()
+        self.softplus = nn.Softplus(beta=1, threshold=20)  # Softplus activation
+        self.mse_loss = nn.MSELoss()
+
+    def forward(self, y_pred, y_true):
+        loss = self.mse_loss(y_pred, y_true)
+        return loss  # Sum over batch

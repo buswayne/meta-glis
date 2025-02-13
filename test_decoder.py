@@ -48,19 +48,35 @@ def test_model(test_loader, model_path_1, model_path_2, input_dim, latent_dim, d
     decoder_1 = autoencoder_1.decoder
 
     # Optimized over X
-    autoencoder_2 = Autoencoder(input_dim=input_dim, latent_dim=latent_dim)
+    # autoencoder_2 = Autoencoder(input_dim=input_dim, latent_dim=latent_dim)
+    # try:
+    #     checkpoint = torch.load(model_path_2, weights_only=True)
+    #     state_dict = {k.replace('module.', ''): v for k, v in checkpoint['model'].items()}
+    #     autoencoder_2.load_state_dict(state_dict)
+    # except:
+    #     raise Exception("Could not load pretrained model")
+    #
+    # autoencoder_2.to(device)
+    # autoencoder_2.eval()
+    #
+    # # Extract the decoder from the Autoencoder
+    # decoder_2 = autoencoder_2.decoder
+
+    decoder_1 = Decoder(latent_dim=latent_dim, output_dim=input_dim)
+    decoder_1.to(device)
+    decoder_1.eval()
+
+    decoder_2 = Decoder(latent_dim=latent_dim, output_dim=input_dim)
+
     try:
         checkpoint = torch.load(model_path_2, weights_only=True)
         state_dict = {k.replace('module.', ''): v for k, v in checkpoint['model'].items()}
-        autoencoder_2.load_state_dict(state_dict)
+        decoder_2.load_state_dict(state_dict)
     except:
         raise Exception("Could not load pretrained model")
 
-    autoencoder_2.to(device)
-    autoencoder_2.eval()
-
-    # Extract the decoder from the Autoencoder
-    decoder_2 = autoencoder_2.decoder
+    decoder_2.to(device)
+    decoder_2.eval()
 
     # Initialize lists to store results
     true_optima = []
@@ -211,10 +227,10 @@ def main():
     perturb_pct = 0.2
     input_dim = 15
     latent_dim = 5
-    batch_size = 100
+    batch_size = 10
     test_data_path = f"data/rosenbrock/with_exploration/valid/rosenbrock_{input_dim}d_{perturb_pct}pct_optima_data.pt"
     model_path_1 = f"out/rosenbrock/with_exploration/model_{input_dim}d_{latent_dim}l_softmax_X.pt"
-    model_path_2 = f"out/rosenbrock/with_exploration/model_{input_dim}d_{latent_dim}l_softmax_f.pt"
+    model_path_2 = f"out/rosenbrock/with_exploration/model_decoder_only_{input_dim}d_{latent_dim}l.pt"
 
     # Choose device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
