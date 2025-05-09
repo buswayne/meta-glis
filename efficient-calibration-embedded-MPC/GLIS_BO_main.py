@@ -3,8 +3,6 @@ import os
 import matplotlib
 import sys
 
-if os.name == 'posix' and "DISPLAY" not in os.environ:
-    matplotlib.use("Agg")
 import GPyOpt
 import idwgopt.idwgopt
 import numpy as np
@@ -23,7 +21,7 @@ def main(prefix, params):
     # optimization parameters
     # Run the optimization
     # n_init = 10 changed to 2*n_var (GLIS default choice)
-    max_iter = 100  # evaluation budget
+    max_iter = 500  # evaluation budget
     max_time = np.inf  # time budget
     eps = 0.0  # Minimum allows distance between the las two observations
     eps_calc = 1.0
@@ -52,7 +50,8 @@ def main(prefix, params):
     dict_context = {}
 
     n_var = len(dict_x0)
-    n_init = 2 * n_var
+    # n_init = 2 * n_var
+    n_init = 1
 
     x0 = dict_to_x(dict_x0)
 
@@ -86,6 +85,14 @@ def main(prefix, params):
                                           constraints=constraints)  # , constraints=constraints_context)
     #    unfeasible_region = GPyOpt.Design_space(space=bounds)
     X_init = GPyOpt.experiment_design.initial_design('random', feasible_region, n_init)
+
+    # print(X_init.shape)
+
+    # return
+    # X_init = [ 4.10338574e-04,  3.72661041e-01,  3.62553282e-01,  2.14256819e+02,
+    #            6.74459426e-01,  2.78783303e-02, -3.07886786e+00, -2.73899815e+00,
+    #            9.55547666e-01,  2.99701800e-01,  8.67292875e-01,  9.01175499e-01,
+    #            5.62042480e-01,  4.42725801e-01]
 
     time_optimization_start = time.perf_counter()
     if method == "BO":
@@ -195,6 +202,8 @@ def main(prefix, params):
         ax.grid(True)
         ax.legend()
 
+    plt.show()
+
     J_best_curr = np.zeros(np.shape(J_sample))
     J_best_val = J_sample[0]
     iter_best_val = 0
@@ -255,16 +264,38 @@ def main(prefix, params):
 
 if __name__ == '__main__':
 
-    experiment_name = "0001"
-    perturb_pct = 0.2
+    experiment_name = "999"
+    perturb_pct = 1.0
 
-    params = {
-        "M": 0.5 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
-        "m": 0.3 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
-        "b": 0.05 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
-        "ftheta": 0.15 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
-        "l": 0.4 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
-    }
+    lb = np.array([0.5, 0.2, 0.1, 0.1, 0.3])
+    ub = lb * 5
+    mid = lb + (ub - lb) / 2
+
+    print(mid)
+
+    sys.exit()
+
+    keys = ["M", "m", "b", "ftheta", "l"]
+
+    # Generate random values uniformly between lb and ub
+    random_vals = np.random.uniform(lb, ub)
+
+    # Create the dictionary
+    params = dict(zip(keys, random_vals))
+
+
+    # params = {
+    #     # "M": 0.5 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
+    #     # "m": 0.2 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
+    #     # "b": 0.1 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
+    #     # "ftheta": 0.1 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
+    #     # "l": 0.3 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0)),
+    #     "M": np.random.uniform(0.5, 2.5),
+    #     "m": np.random.uniform(0.2, 1),
+    #     "b": np.random.uniform(0.1, 0.5),
+    #     "ftheta": np.random.uniform(0.1, 0.5),
+    #     "l": np.random.uniform(0.3, 1.5)
+    # }
 
     main(experiment_name, params)
 

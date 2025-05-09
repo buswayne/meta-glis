@@ -10,25 +10,29 @@ import pickle
 
 perturb_pct = 0.2
 
-i = 8
+i = 1000
 
-while i < 1000:  # Numero di esecuzioni con costanti diverse
+while i < 2000:  # Numero di esecuzioni con costanti diverse
 
     try: # try one calibration
         experiment_name = f"{i:04}"
 
-        params = {}
-        params['M'] = 0.5 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0))
-        params['m'] = 0.2 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0))
-        params['b'] = 0.1 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0))
-        params['ftheta'] = 0.1 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0))
-        params['l'] = 0.3 * (1 + perturb_pct * np.random.uniform(low=-1.0, high=1.0))
+        lb = np.array([0.5, 0.2, 0.1, 0.1, 0.3])
+        ub = lb * 5
+
+        keys = ["M", "m", "b", "ftheta", "l"]
+        # Generate random values uniformly between lb and ub
+        random_vals = np.random.uniform(lb, ub)
+
+        # Create the dictionary
+        params = dict(zip(keys, random_vals))
 
         # Run the code
         main(experiment_name, params)
 
         with open(os.path.join('results/params', experiment_name + '.pkl'), 'wb') as f:
             pickle.dump(params, f)
+
         i += 1 # next iter
 
     except Exception as e:

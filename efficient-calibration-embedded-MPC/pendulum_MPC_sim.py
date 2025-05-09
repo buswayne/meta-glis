@@ -220,9 +220,11 @@ def simulate_pendulum_MPC(sim_options, params):
     # Basic Kalman filter design
     Q_kal = get_parameter(sim_options, 'Q_kal')
     R_kal = get_parameter(sim_options, 'R_kal')
+
     try:
         L, P, W = kalman_design_simple(Ad, Bd, Cd, Dd, Q_kal, R_kal, type='predictor')
     except:
+        L = np.zeros((Ad.shape[0], Cd.shape[0]))  # Zero gain fallback
         EMERGENCY_STOP = True
 
     x0_est = x0

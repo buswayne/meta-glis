@@ -152,8 +152,24 @@ def init(prob):
     z = (lb+ub)/2
     
     if not feasible_sampling:
-        X[0:nsamp,] = lhs(nvar,nsamp,"m")
-        X[0:nsamp,] = X[0:nsamp,]*(ones((nsamp,1))*(ub-lb)) + ones((nsamp,1))*lb
+        if nsamp == 1:
+            # X_init = [ 4.10338574e-04,  3.72661041e-01,  3.62553282e-01,  2.14256819e+02,
+            #                 6.74459426e-01,  2.78783303e-02, -3.07886786e+00, -2.73899815e+00,
+            #                 9.55547666e-01,  2.99701800e-01,  8.67292875e-01,  9.01175499e-01,
+            #                 5.62042480e-01,  4.42725801e-01]
+            if nvar == 14:
+                X_init = [ 7.53774966e-02,  1.00000000e+00,  9.95072347e-01,  1.55629154e+02,
+                       7.03081769e-01,  3.42407916e-02, -7.00000000e+00, -1.00000000e+00,
+                       1.00000000e+00,  5.55111512e-17,  3.27102398e-01,  3.85344826e-01,
+                       6.26874649e-01,  1.00000000e+00]
+            elif nvar == 5:
+                X_init = [7.8699784e-04, 9.5497125e-01, 9.1864395e-01, 3.3406997e-01, 4.6864519e-01]
+
+            X_init_scaled = (X_init - d0) / dd
+            X[0:nsamp,] = X_init_scaled
+        else:
+            X[0:nsamp,] = lhs(nvar,nsamp,"m") # Latin hypercube sampling
+            X[0:nsamp,] = X[0:nsamp,]*(ones((nsamp,1))*(ub-lb)) + ones((nsamp,1))*lb
     else:
         nn = nsamp
         nk = 0

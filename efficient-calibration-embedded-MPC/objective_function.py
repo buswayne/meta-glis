@@ -101,12 +101,15 @@ def f_x(x, params, eps_calc=1.0, seed_val=None):
     simoptions = get_simoptions_x(x)
     simoptions['seed_val'] = seed_val
 
-    sim_failed = False
-    try:
-        simout = simulate_pendulum_MPC(simoptions, params)
-    except ValueError as e:
-        print(e)
-        sim_failed = True
+    sim_failed = True
+
+    while sim_failed:
+        try:
+            simout = simulate_pendulum_MPC(simoptions, params)
+            sim_failed = False
+        except ValueError as e:
+            print(e)
+            continue
 
     if not sim_failed:
         t = simout['t']

@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from pyswarm import pso
 from scipy.optimize import differential_evolution
 from benchmarks import rosenbrock_function_np
 
