@@ -75,12 +75,12 @@ def obj_PID_panda(x_var, const, return_trace=False):
         J = np.sum(penalty)
         J += np.sum(np.sqrt(np.mean(qerr**2, axis=0)))
         J += np.sum(np.std(qerr, axis=0))
-        J += np.sum(np.sqrt(np.mean(dqerr**2, axis=0)))
-        J += np.sum(np.std(dqerr, axis=0))
+        # J += np.sum(np.sqrt(np.mean(dqerr**2, axis=0)))
+        # J += np.sum(np.std(dqerr, axis=0))
         J += np.sum(np.max(np.abs(qerr), axis=0))
         J += np.sum(np.abs(np.mean(qerr[-50:, :], axis=0)))
-        J += np.sum(np.max(np.abs(dqerr), axis=0))
-        J += np.sum(np.abs(np.mean(dqerr[-50:, :], axis=0)))
+        # J += np.sum(np.max(np.abs(dqerr), axis=0))
+        # J += np.sum(np.abs(np.mean(dqerr[-50:, :], axis=0)))
     else:
         J = np.sum(penalty)
 
