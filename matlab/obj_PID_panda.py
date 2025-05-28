@@ -65,11 +65,11 @@ def obj_PID_panda(x_var, const, return_trace=False):
         dqerr[jj, :] = dq_r[jj, :] - dq_msr[jj, :]
         ddqerr[jj, :] = ddq_r[jj, :] - ddq_msr[jj, :]
 
-        for k in range(n_DoFs):
-            if np.isnan(q_msr[jj, k]) or abs(qerr[jj, k]) > toll_qerr:
-                penalty[k] = 1e5 * np.exp(-t[jj])
-                exit_flag = True
-                break
+        # for k in range(n_DoFs):
+        #     if np.isnan(q_msr[jj, k]) or abs(qerr[jj, k]) > toll_qerr:
+        #         penalty[k] = 1e5 * np.exp(-t[jj])
+        #         exit_flag = True
+        #         break
 
     if jj == len(t) - 1:
         J = np.sum(penalty)
