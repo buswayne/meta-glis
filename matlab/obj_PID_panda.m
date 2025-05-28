@@ -1,6 +1,8 @@
-function J = obj_PID_panda(x_var, const)
+function J = obj_PID_panda(x_var, const, flag)
 
-    
+    if nargin < 3
+        flag = false;
+    end
     %% Count the number of function evaluations %%
     persistent idx_sim;
     if isempty(idx_sim)
@@ -145,6 +147,10 @@ function J = obj_PID_panda(x_var, const)
         steady_state_dqerr = 0;
         
         J = sum(penalty);
+    end
+
+    if flag
+        J = [J, q_msr];
     end
     
     close(wb)

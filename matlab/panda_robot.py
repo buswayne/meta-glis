@@ -12,7 +12,6 @@ def panda_robot():
     L = [RevoluteDH(d=d[i], a=a[i], alpha=alpha[i]) for i in range(7)]
 
     masses = [1, 0, 3, 0, 5, 0, 2.5]
-    # masses = [5, 5, 5, 5, 5, 5, 5]
     inertias = [[0.1, 0.1, 0.1, 0, 0, 0]] * 7
     centers = [
         [-d[0]/2, 0.0, 0.0],

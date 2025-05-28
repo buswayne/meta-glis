@@ -53,7 +53,7 @@ def obj_PID_panda(x_var, const, return_trace=False):
 
         tau_l = f * dq_msr[jj - 1, :] + g
         tau_PID = B_eval[jj] @ (Kp @ (q_r[jj, :] - q_msr[jj - 1, :]) - Kd @ dq_msr[jj - 1, :] + Ki @ ierr_m[jj - 1, :])
-        tau_comp = f * dq_msr[jj - 1, :]# + g_eval[jj]
+        tau_comp = f * dq_msr[jj - 1, :] + g_eval[jj]
 
         ddq_msr[jj, :] = np.linalg.solve(B, -tau_l + tau_PID + tau_comp)
         dq_msr[jj, :] = dq_msr[jj - 1, :] + ddq_msr[jj, :] * Ts

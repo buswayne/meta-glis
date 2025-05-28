@@ -2,6 +2,7 @@ import numpy as np
 from panda_robot import panda_robot
 from obj_PID_panda import obj_PID_panda
 from bayes_opt import BayesianOptimization
+from bayes_opt.util import UtilityFunction
 import roboticstoolbox as rtb
 import matplotlib.pyplot as plt
 import imageio
@@ -17,64 +18,78 @@ friction = np.array([2]*n_DoFs)
 
 # Robot and initial state
 Robot = panda_robot()
-R_0 = np.eye(3)
-x_0 = np.array([0.1, 0.0, 0.5])
-x_f = np.array([0.25, 0.0, 0.6])
-dx_0 = dx_f = ddx_0 = ddx_f = np.zeros(3)
+# R_0 = np.diag([-1, 1, 1]) #np.eye(3)
+# x_0 = np.array([0.3, 0.0, 0.5])
+# x_f = np.array([0.4, 0.0, 0.6])
+# dx_0 = dx_f = ddx_0 = ddx_f = np.zeros(3)
+#
+# T_0 = np.eye(4)
+# T_0[:3, :3] = R_0
+# T_0[:3, 3] = x_0
 
-T_0 = np.eye(4)
-T_0[:3, :3] = R_0
-T_0[:3, 3] = x_0
+# q_guess = np.array([-0.7160, -0.5850, 0.3504, -1.5666, 0.2241, -2.1201, -2.8398])
+# q_0 = Robot.ikine_LM(T_0, q0=q_guess).q
+#
+# t0 = 0
+# tf = 2.
+#
+# # Trajectory interpolation
+# C = np.vstack([
+#     [1, t, t**2, t**3, t**4, t**5] for t in [t0, tf]
+# ] + [
+#     [0, 1, 2*t, 3*t**2, 4*t**3, 5*t**4] for t in [t0, tf]
+# ] + [
+#     [0, 0, 2, 6*t, 12*t**2, 20*t**3] for t in [t0, tf]
+# ])
+#
+# xM = np.vstack([x_0, x_f, dx_0, dx_f, ddx_0, ddx_f])
+# a = np.linalg.solve(C, xM)
+#
+# x_r = []
+# dx_r = []
+# ddx_r = []
+# q_r = [q_0]
+# dq_r = [np.zeros(n_DoFs)]
+# ddq_r = [np.zeros(n_DoFs)]
+#
+# for t in time:
+#     if t <= tf:
+#         xt = np.array([np.polyval(a[::-1, i], t) for i in range(3)])
+#         dxt = np.array([np.polyval(np.polyder(a[::-1, i]), t) for i in range(3)])
+#         ddxt = np.array([np.polyval(np.polyder(a[::-1, i], 2), t) for i in range(3)])
+#         x_r.append(xt)
+#         dx_r.append(dxt)
+#         ddx_r.append(ddxt)
+#
+#         T_i = np.eye(4)
+#         T_i[:3, :3] = R_0
+#         T_i[:3, 3] = xt
+#
+#         q_i = Robot.ikine_LM(T_i, q0=q_r[-1]).q
+#         q_r.append(q_i)
+#         dq_r.append((q_i - q_r[-2])/ts)
+#         ddq_r.append((dq_r[-1] - dq_r[-2])/ts)
+#     else:
+#         x_r.append(x_r[-1])
+#         dx_r.append(np.zeros(3))
+#         ddx_r.append(np.zeros(3))
+#         q_r.append(q_r[-1])
+#         dq_r.append(np.zeros(n_DoFs))
+#         ddq_r.append(np.zeros(n_DoFs))
 
-q_guess = np.array([-0.7160, -0.5850, 0.3504, -1.5666, 0.2241, -2.1201, -2.8398])
-q_0 = Robot.ikine_LM(T_0, q0=q_guess).q
+A = 15*np.pi/180
+f = 1
+q_0 = np.array([-0.7160, -0.5850, 0.3504, -1.5666, 0.2241, -2.1201, -2.8398])
 
-t0 = 0
-tf = 2.
-
-# Trajectory interpolation
-C = np.vstack([
-    [1, t, t**2, t**3, t**4, t**5] for t in [t0, tf]
-] + [
-    [0, 1, 2*t, 3*t**2, 4*t**3, 5*t**4] for t in [t0, tf]
-] + [
-    [0, 0, 2, 6*t, 12*t**2, 20*t**3] for t in [t0, tf]
-])
-
-xM = np.vstack([x_0, x_f, dx_0, dx_f, ddx_0, ddx_f])
-a = np.linalg.solve(C, xM)
-
-x_r = []
-dx_r = []
-ddx_r = []
-q_r = [q_0]
+q_r = [q_0 - A]
 dq_r = [np.zeros(n_DoFs)]
 ddq_r = [np.zeros(n_DoFs)]
-
 for t in time:
-    if t <= tf:
-        xt = np.array([np.polyval(a[::-1, i], t) for i in range(3)])
-        dxt = np.array([np.polyval(np.polyder(a[::-1, i]), t) for i in range(3)])
-        ddxt = np.array([np.polyval(np.polyder(a[::-1, i], 2), t) for i in range(3)])
-        x_r.append(xt)
-        dx_r.append(dxt)
-        ddx_r.append(ddxt)
+    q_r.append(q_0 + A * np.sin(2 * np.pi * f * t - np.pi / 2))
+    dq_r.append((q_r[-1] - q_r[-2])/ts)
+    ddq_r.append((dq_r[-1] - dq_r[-2])/ts)
 
-        T_i = np.eye(4)
-        T_i[:3, :3] = R_0
-        T_i[:3, 3] = xt
-
-        q_i = Robot.ikine_LM(T_i, q0=q_r[-1]).q
-        q_r.append(q_i)
-        dq_r.append((q_i - q_r[-2])/ts)
-        ddq_r.append((dq_r[-1] - dq_r[-2])/ts)
-    else:
-        x_r.append(x_r[-1])
-        dx_r.append(np.zeros(3))
-        ddx_r.append(np.zeros(3))
-        q_r.append(q_r[-1])
-        dq_r.append(np.zeros(n_DoFs))
-        ddq_r.append(np.zeros(n_DoFs))
+# Robot.plot(np.array(q_r), dt=ts, loop=True)
 
 # Assemble data for objective
 r = dict(q_r=np.array(q_r), dq_r=np.array(dq_r), ddq_r=np.array(ddq_r))
@@ -101,7 +116,8 @@ optimizer = BayesianOptimization(
 
 optimizer.maximize(
     init_points=10,
-    n_iter=90
+    n_iter=90,
+    acquisition_function=UtilityFunction(kind='ei')
 )
 
 print("Best Parameters:", optimizer.max['params'])
@@ -115,31 +131,46 @@ q_r = q_r[:len(time)]
 q_msr = q_msr[:len(time)]
 
 t = const['time']
-q_err = np.rad2deg(q_r - q_msr)
+q_err = q_r - q_msr
 
-# Plot joint tracking errors (degrees)
+# Plot joint tracking errors (rad)
 plt.figure(figsize=(10, 5))
 for i in range(n_DoFs):
     plt.plot(t, q_err[:, i], label=f'q{i+1}')
 plt.xlabel("Time [s]")
-plt.ylabel("Tracking error [deg]")
+plt.ylabel("Tracking error [rad]")
 plt.title("Joint Position Tracking Errors")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
 plt.show()
 
-plt.figure(figsize=(10, 5))
+# plt.figure(figsize=(10, 5))
+# for i in range(n_DoFs):
+#     plt.plot(t, q_r[:, i], linestyle='--', label=f'q_r{i+1}')
+#     plt.plot(t, q_msr[:, i], linestyle='-', label=f'q_msr{i+1}')
+# plt.xlabel("Time [s]")
+# plt.ylabel("Joint Angle [rad]")
+# plt.title("Desired vs Measured Joint Angles")
+# plt.legend(ncol=2)
+# plt.grid(True)
+# plt.tight_layout()
+# plt.show()
+
+fig, axs = plt.subplots(n_DoFs, 1, figsize=(10, 2.5 * n_DoFs), sharex=True)
+
 for i in range(n_DoFs):
-    plt.plot(t, np.rad2deg(q_r[:, i]), linestyle='--', label=f'q_r{i+1}')
-    plt.plot(t, np.rad2deg(q_msr[:, i]), linestyle='-', label=f'q_msr{i+1}')
-plt.xlabel("Time [s]")
-plt.ylabel("Joint Angle [deg]")
-plt.title("Desired vs Measured Joint Angles")
-plt.legend(ncol=2)
-plt.grid(True)
+    axs[i].plot(t, q_r[:, i], linestyle='--', label=f'q_r{i+1}')
+    axs[i].plot(t, q_msr[:, i], linestyle='-', label=f'q_msr{i+1}')
+    axs[i].set_ylabel("Angle [rad]")
+    axs[i].set_title(f"Joint {i+1}")
+    axs[i].legend()
+    axs[i].grid(True)
+
+axs[-1].set_xlabel("Time [s]")
 plt.tight_layout()
 plt.show()
+
 
 # Optionally downsample for faster plotting
 q_msr_sampled = q_msr[::20]
