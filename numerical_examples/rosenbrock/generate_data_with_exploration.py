@@ -1,4 +1,4 @@
-import sys
+import sys, os
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -88,38 +88,49 @@ def generate_optima(file_path, data_size=10000, dim=2, bounds=(-30, 30), perturb
                  "f": torch.tensor(f, dtype=torch.float32),
                  "params": params}
 
+    # Ensure directory exists, not the full file path
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
     torch.save(save_data, file_path)
     print(f"Data and parameters saved to {file_path}")
 
     return Xopt, fopt, X, f
 
 if __name__ == "__main__":
+
     # Configuration
     input_dim = 20
-    data_size = 500
+    data_size = 10_000
     bounds = (-2.5 * np.ones(input_dim), 2.5 * np.ones(input_dim))
     perturb_pct = 1000
 
     file_name = f"rosenbrock_{input_dim}d_{perturb_pct}pct_optima_data.pt"
 
+    # (Xopt_train, fopt_train, X_train, f_train) = generate_optima(
+    #                                             "../../data/rosenbrock/with_exploration/train/" + file_name,
+    #                                              data_size=data_size,
+    #                                              dim=input_dim,
+    #                                              bounds=bounds,
+    #                                              perturb_pct=perturb_pct)
+
+
+    # (Xopt_valid, fopt_valid, X_valid, f_valid) = generate_optima(
+    #                                              "../../data/rosenbrock/with_exploration/valid/" + file_name,
+    #                                              data_size=data_size//5,
+    #                                              dim=input_dim,
+    #                                              bounds=bounds,
+    #                                              perturb_pct=perturb_pct)
+    #
+    # (Xopt_test, fopt_test, X_test, f_test) = generate_optima(
+    #                                              "../../data/rosenbrock/with_exploration/test/" + file_name,
+    #                                              data_size=data_size//5,
+    #                                              dim=input_dim,
+    #                                              bounds=bounds,
+    #                                              perturb_pct=perturb_pct)
+
     (Xopt_train, fopt_train, X_train, f_train) = generate_optima(
-                                                "../../data/rosenbrock/with_exploration/train/" + file_name,
+                                                "../../data/rosenbrock/with_exploration/valid_theory/" + file_name,
                                                  data_size=data_size,
-                                                 dim=input_dim,
-                                                 bounds=bounds,
-                                                 perturb_pct=perturb_pct)
-
-
-    (Xopt_valid, fopt_valid, X_valid, f_valid) = generate_optima(
-                                                 "../../data/rosenbrock/with_exploration/valid/" + file_name,
-                                                 data_size=data_size//5,
-                                                 dim=input_dim,
-                                                 bounds=bounds,
-                                                 perturb_pct=perturb_pct)
-
-    (Xopt_test, fopt_test, X_test, f_test) = generate_optima(
-                                                 "../../data/rosenbrock/with_exploration/test/" + file_name,
-                                                 data_size=data_size//5,
                                                  dim=input_dim,
                                                  bounds=bounds,
                                                  perturb_pct=perturb_pct)

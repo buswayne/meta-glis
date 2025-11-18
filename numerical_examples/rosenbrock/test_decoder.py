@@ -119,7 +119,7 @@ def test_model(test_loader, model_path, input_dim, latent_dim, x_bounds, device)
     results_dir = 'results'
     os.makedirs(results_dir, exist_ok=True)
 
-    results_file = os.path.join(results_dir, f'rosenbrock_{input_dim}d_{latent_dim}l_v2.pkl')
+    results_file = os.path.join(results_dir, f'rosenbrock_{input_dim}d_{latent_dim}l_valid_theory.pkl')
     with open(results_file, 'wb') as f:
         pickle.dump(results_dict, f)
 
@@ -132,8 +132,8 @@ def main():
     input_dim = 20
     latent_dim = 3
     x_bounds = [(-2.5, 2.5)] * input_dim
-    batch_size = 100
-    test_data_path = f"../../data/rosenbrock/with_exploration/test/rosenbrock_{input_dim}d_{perturb_pct}pct_optima_data.pt"
+    batch_size = 1000
+    test_data_path = f"../../data/rosenbrock/with_exploration/valid_theory/rosenbrock_{input_dim}d_{perturb_pct}pct_optima_data.pt"
     model_path = f"../../out/rosenbrock/with_exploration/model_{input_dim}d_{latent_dim}l_alpha_0.90.pt"
 
     # Choose device
